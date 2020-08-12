@@ -2,10 +2,12 @@
 import tensorflow as tf
 
 from tensorpack import *
-from tensorpack.models import BatchNorm, BNReLU, Conv2D, MaxPooling, FixedUnPooling
+from tensorpack.models import BatchNorm, BNReLU, Conv2D, MaxPooling, FixedUnPooling, AvgPooling
 from tensorpack.tfutils.summary import add_moving_summary, add_param_summary
 
 from .utils import *
+
+from .encoders import inception_encoder
 
 import sys
 sys.path.append("..") # adds higher directory to python modules path.
@@ -88,7 +90,7 @@ def decoder(name, i):
 
             u3 = Conv2D('conva', u3_sum, 256, 5, strides=1, padding=pad)   
             u3 = dense_blk('dense', u3, [128, 32], [1, 5], 8, split=4, padding=pad)
-            u3 = Conv2D('convf', u3, 512, 1, strides=1)   
+            u3 = Conv2D('convf', u3, i[-3].shape[1].value, 1, strides=1)   
         ####
         with tf.variable_scope('u2'):          
             u2 = upsample2x('rz', u3)
@@ -96,7 +98,7 @@ def decoder(name, i):
 
             u2x = Conv2D('conva', u2_sum, 128, 5, strides=1, padding=pad)
             u2 = dense_blk('dense', u2x, [128, 32], [1, 5], 4, split=4, padding=pad)
-            u2 = Conv2D('convf', u2, 256, 1, strides=1)   
+            u2 = Conv2D('convf', u2, i[-4].shape[1].value, 1, strides=1)   
         ####
         with tf.variable_scope('u1'):          
             u1 = upsample2x('rz', u2)
@@ -108,11 +110,12 @@ def decoder(name, i):
 
 ####
 class Model(ModelDesc, Config):
-    def __init__(self, freeze=False):
+    def __init__(self, freeze=False, encoder_name='default'):
         super(Model, self).__init__()
         assert tf.test.is_gpu_available()
         self.freeze = freeze
         self.data_format = 'NCHW'
+        self.encoder_name = encoder_name
 
     def _get_inputs(self):
         return [InputDesc(tf.float32, [None] + self.train_input_shape + [3], 'images'),
@@ -161,13 +164,17 @@ class Model_NP_HV(Model):
         ####
         with argscope(Conv2D, activation=tf.identity, use_bias=False, # K.he initializer
                       W_init=tf.variance_scaling_initializer(scale=2.0, mode='fan_out')), \
-                argscope([Conv2D, BatchNorm], data_format=self.data_format):
+                argscope([Conv2D, BatchNorm, MaxPooling, AvgPooling], data_format=self.data_format):
 
             i = tf.transpose(images, [0, 3, 1, 2])
             i = i if not self.input_norm else i / 255.0
 
             ####
-            d = encoder(i, self.freeze)
+            #d = encoder(i, self.freeze)
+            if self.encoder_name == 'inception':
+              d = inception_encoder(i, self.freeze)
+            else:
+              d = encoder(i, self.freeze)
             d[0] = crop_op(d[0], (184, 184))
             d[1] = crop_op(d[1], (72, 72))
 

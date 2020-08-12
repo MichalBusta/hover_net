@@ -71,12 +71,13 @@ class Config(object):
         self.data_ext = '.npy' 
         # list of directories containing validation patches. 
         # For both train and valid directories, a comma separated list of directories can be used
-        self.train_dir = ['../../../CoNSeP/train/%s/'  % data_code_dict[self.model_type]]
-        self.valid_dir = ['../../../CoNSeP/valid/%s/' % data_code_dict[self.model_type]]
+        base_dir = '/home/busta/data/consep/CoNSeP'
+        self.train_dir = [f'{base_dir}/train/%s/'  % data_code_dict[self.model_type]]
+        self.valid_dir = [f'{base_dir}/valid/%s/' % data_code_dict[self.model_type]]
 
         # number of processes for parallel processing input
-        self.nr_procs_train = 8 
-        self.nr_procs_valid = 4 
+        self.nr_procs_train = 1 
+        self.nr_procs_valid = 1 
 
         self.input_norm  = True # normalize RGB to 0-1 range
 
@@ -85,7 +86,7 @@ class Config(object):
         model_id = '%s' % self.model_type
         self.model_name = '%s/%s' % (exp_id, model_id)
         # loading chkpts in tensorflow, the path must not contain extra '/'
-        self.log_path = '/media/vqdang/logs/' # log root path - modify according to needs
+        self.log_path = './logs/' # log root path - modify according to needs
         self.save_dir = '%s/%s' % (self.log_path, self.model_name) # log file destination
 
         #### Info for running inference

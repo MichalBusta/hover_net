@@ -182,7 +182,7 @@ class Trainer(Config):
 
         ######            
         model_flags = opt['model_flags']
-        model = self.get_model()(**model_flags)
+        model = self.get_model()(**model_flags, encoder_name=self.encoder_name)
         ######
         callbacks=[
                 ModelSaver(max_to_keep=opt['nr_epochs']),
@@ -232,12 +232,17 @@ class Trainer(Config):
 
                 log_dir = '%s/%02d/' % (self.save_dir, idx)
                 pretrained_path = opt['pretrained_path'] 
+                init_weights = None
                 if pretrained_path == -1:
                     pretrained_path = get_last_chkpt_path(prev_log_dir)
                     init_weights = SaverRestore(pretrained_path, ignore=['learning_rate'])
                 elif pretrained_path is not None:
                     init_weights = get_model_loader(pretrained_path)
-                self.run_once(opt, sess_init=init_weights, save_dir=log_dir)
+                
+                if init_weights is not None:
+                  self.run_once(opt, sess_init=init_weights, save_dir=log_dir)
+                else:
+                  self.run_once(opt, save_dir=log_dir)
                 prev_log_dir = log_dir
         else:
             random.seed(self.seed)
@@ -249,7 +254,10 @@ class Trainer(Config):
             if 'pretrained_path' in opt:
                 assert opt['pretrained_path'] != -1
                 init_weights = get_model_loader(opt['pretrained_path'])
-            self.run_once(opt, sess_init=init_weights, save_dir=self.save_dir)
+            if init_weights is not None:
+              self.run_once(opt, sess_init=init_weights, save_dir=self.save_dir)
+            else:
+              self.run_once(opt, save_dir=self.save_dir)
 
         return
     ####
