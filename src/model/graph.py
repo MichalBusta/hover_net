@@ -7,7 +7,7 @@ from tensorpack.tfutils.summary import add_moving_summary, add_param_summary
 
 from .utils import *
 
-from .encoders import inception_encoder
+from .encoders import inception_encoder, densenet_encoder
 
 import sys
 sys.path.append("..") # adds higher directory to python modules path.
@@ -173,6 +173,8 @@ class Model_NP_HV(Model):
             #d = encoder(i, self.freeze)
             if self.encoder_name == 'inception':
               d = inception_encoder(i, self.freeze)
+            elif self.encoder_name == 'densenet':
+              d = densenet_encoder(i, self.freeze)
             else:
               d = encoder(i, self.freeze)
             d[0] = crop_op(d[0], (184, 184))

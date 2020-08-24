@@ -19,7 +19,7 @@ np_hv = {
     'train_mask_shape'  : [ 80,  80],
     'infer_input_shape' : [270, 270],
     'infer_mask_shape'  : [ 80,  80], 
-    'encoder_name': "inception", 
+    'encoder_name': "densenet", 
 
     'training_phase'    : [
         {
@@ -28,12 +28,12 @@ np_hv = {
                 # tuple(initial value, schedule)
                 'learning_rate': (1.0e-4, [('25', 1.0e-5)]), 
             },
-            'pretrained_path'  : '/home/busta/Downloads/Inception-BN.npz',
+            'pretrained_path'  : '/home/busta/Downloads/dn.npz',
             'train_batch_size' : 8,
             'infer_batch_size' : 16,
 
             'model_flags' : {
-                'freeze' : True
+                'freeze' : False
             }
         },
 

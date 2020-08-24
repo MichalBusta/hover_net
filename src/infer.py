@@ -144,7 +144,7 @@ class Inferer(Config):
 
         model_constructor = self.get_model()
         pred_config = PredictConfig(
-            model        = model_constructor(),
+            model        = model_constructor(encoder_name=self.encoder_name),
             session_init = get_model_loader(model_path),
             input_names  = self.eval_inf_input_tensor_names,
             output_names = self.eval_inf_output_tensor_names)

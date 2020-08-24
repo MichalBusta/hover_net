@@ -63,5 +63,75 @@ def inception_encoder(i, freeze):
     d3= Conv2D('conv-d3-stub',  d3, 1024, 1, strides=1, activation=tf.identity)
     
     return [d1, d2, d3, d4]
+  
+  
+def conv_block(x, growth_rate, name, freeze):
+  """A building block for a dense block.
+  Arguments:
+    x: input tensor.
+    growth_rate: float, growth rate at dense layers.
+    name: string, block label.
+  Returns:
+    Output tensor for the block.
+  """
+
+  x1 = BatchNorm(name + '_0_bn', x, epsilon=1.001e-5) 
+  x = tf.nn.relu(x, name=name + '_0_relu')
+  
+  x1 = Conv2D(name + '_1_conv',  x1, 4 * growth_rate, 1, strides=1, activation=tf.identity, use_bias=False)
+  x1 = BatchNorm(name + '_1_bn', x1, epsilon=1.001e-5)  
+  x = tf.nn.relu(x1, name=name + '_1_relu')
+  x1 = Conv2D(name + '_2_conv', x1, growth_rate, 3, padding='same', use_bias=False)
+  x1 = tf.stop_gradient(x1) if freeze else x1
+  x =  tf.concat([x, x1], 1, name=name + '_concat')
+  return x
+
+def transition_block(x, reduction, name):
+  """A transition block.
+  Arguments:
+    x: input tensor.
+    reduction: float, compression rate at transition layers.
+    name: string, block label.
+  Returns:
+    output tensor for the block.
+  """
+ 
+  x = BatchNorm(name + '_bn', x, epsilon=1.001e-5) 
+  x = tf.nn.relu(x, name=name + '_relu')
+  x = Conv2D(name + '_conv', x, int(x.shape[1].value * reduction), 1, use_bias=False)
+  x = AvgPooling(name + '_pool', x, 2, strides=2, padding='SAME')
+  return x
+
+  
+def dense_block(x, freeze, blocks, name):
+  """A dense block.
+  Arguments:
+    x: input tensor.
+    blocks: integer, the number of building blocks.
+    name: string, block label.
+  Returns:
+    Output tensor for the block.
+  """
+  for i in range(blocks):
+    x = conv_block(x, 32, name=name + '_block' + str(i + 1), freeze=freeze)
+    x = tf.stop_gradient(x) if freeze else x
+  return x
+
+def densenet_encoder(x, freeze, blocks = [6, 12, 24, 16]):
+  
+  x = Conv2D('conv1/conv', x, 64, 7, padding='valid', strides=1, activation=BNReLU)
+  d1 = dense_block(x, freeze, blocks[0], name='conv2')
+  x = transition_block(x, 1, name='pool2')
+  d2 = dense_block(x, freeze, blocks[1], name='conv3')
+  d2 = tf.stop_gradient(d2) if freeze else d2
+  x = transition_block(d2, 0.5, name='pool3')
+  d3 = dense_block(x, freeze, blocks[2], name='conv4')
+  d3 = tf.stop_gradient(d3) if freeze else d3
+  x = transition_block(d3, 0.5, name='pool4')
+  d4 = dense_block(x, freeze, blocks[3], name='conv5')
+  d4 = tf.stop_gradient(d4) if freeze else d4
+  
+  return [d1, d2, d3, d4]
+  
     
     
