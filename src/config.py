@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from tensorpack import imgaug
+from transforms import CoarseDropout
 
 from loader.augs import (BinarizeLabel, GaussianBlur, GenInstanceDistance,
                          GenInstanceHV, MedianBlur, GenInstanceUnetMap,
@@ -153,6 +154,7 @@ class Config(object):
                 imgaug.Brightness(26, clip=True),  
                 imgaug.Contrast((0.75, 1.25), clip=True),
                 ]),
+            CoarseDropout(),
             imgaug.ToUint8(),
         ]
 
