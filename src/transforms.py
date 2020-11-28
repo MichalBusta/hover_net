@@ -5,7 +5,8 @@ Created on Aug 24, 2020
 '''
 
 import random 
-from tensorpack.dataflow.imgaug import ImageAugmentor 
+from tensorpack.dataflow.imgaug import ImageAugmentor
+import cv2 
 
 class CoarseDropout(ImageAugmentor):
   """ Random rotate and crop the largest possible rect without the border
@@ -41,3 +42,26 @@ class CoarseDropout(ImageAugmentor):
     for x1, y1, x2, y2 in holes:
         img[y1:y2, x1:x2] = self.fillvalue
     return img
+  
+class CannyAug(ImageAugmentor):
+  """ Random rotate and crop the largest possible rect without the border
+      This will produce images of different shapes.
+  """
+  def __init__(self):
+    super(CannyAug, self).__init__()
+    self._init(locals())
+    
+
+  def _get_augment_params(self, img):
+    
+    p1 = random.randint(90, 130)
+    p2 = random.randint(190, 220)
+    return p1, p2
+
+  def _augment(self, img, param):
+    
+    p1, p2 = param
+    edges = cv2.Canny(img,p1,p2)
+    return cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+    
+
