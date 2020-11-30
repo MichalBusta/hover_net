@@ -8,10 +8,14 @@ import numpy as np
 from misc.patch_extractor import PatchExtractor
 from misc.utils import rm_n_mkdir
 
+import scipy.io as sio
+
 from config import Config
 
 ###########################################################################
 if __name__ == '__main__':
+  
+    set = 'test'
     
     cfg = Config()
 
@@ -33,10 +37,10 @@ if __name__ == '__main__':
 
     ### Paths to data - these need to be modified according to where the original data is stored
     img_ext = '.png'
-    img_dir = '../../../data/CoNSeP/train/Images/'
-    ann_dir = '../../../data/CoNSeP/train/Labels/' 
+    img_dir = f'/home/busta/data/consep/CoNSeP/{set.title()}/Images/'
+    ann_dir = f'/home/busta/data/consep/CoNSeP/{set.title()}/Labels/' 
     ####
-    out_dir = "../../../CoNSeP/train/%dx%d_%dx%d" % \
+    out_dir = f"/home/busta/data/consep/CoNSeP/{set}/%dx%d_%dx%d" % \
                         (win_size[0], win_size[1], step_size[0], step_size[1])
 
     file_list = glob.glob('%s/*%s' % (img_dir, img_ext))
