@@ -43,8 +43,8 @@ if __name__ == '__main__':
       print(f'{sum_cls0}/{sum_cls1} - ratio: {sum_cls1 / sum_cls0}')
       cnt += 1
       
-      if cnt > 100:
-        break
+      #if cnt > 100:
+      #  break
     except:
       import traceback
       print(f' !!!! Failed to read input: {arr_name}')
