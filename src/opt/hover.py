@@ -20,6 +20,7 @@ np_hv = {
     'infer_input_shape' : [270, 270],
     'infer_mask_shape'  : [ 80,  80], 
     'encoder_name': "densenet", 
+    'use_assp': True,
 
     'training_phase'    : [
         {
