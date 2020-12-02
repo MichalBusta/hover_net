@@ -80,6 +80,29 @@ def encoder(i, freeze):
     
     d4 = Conv2D('conv_bot',  d4, 1024, 1, padding='same')
     return [d1, d2, d3, d4]
+  
+def atrous_spatial_pyramid_pooling(self, x):
+        
+  with tf.variable_scope('ASSP_layers'):
+
+    feature_map_size = tf.shape(x)
+
+    image_level_features = tf.reduce_mean(x, [1, 2], keep_dims=True)
+    image_level_features = self._conv(image_level_features, 1, 256, 1, 'global_avg_pool', True)
+    image_level_features = tf.image.resize_bilinear(image_level_features, (feature_map_size[1], feature_map_size[2]))
+
+    at_pool1x1   = self._conv(x, kernel_size=1, filters=256, strides=1, scope='assp1', batch_norm=True)
+    at_pool3x3_1 = self._conv(x, kernel_size=3, filters=256, strides=1, scope='assp2', batch_norm=True, rate=6)
+    at_pool3x3_2 = self._conv(x, kernel_size=3, filters=256, strides=1, scope='assp3', batch_norm=True, rate=12)
+    at_pool3x3_3 = self._conv(x, kernel_size=3, filters=256, strides=1, scope='assp4', batch_norm=True, rate=18)
+
+    net = tf.concat((image_level_features, at_pool1x1, at_pool3x3_1, at_pool3x3_2, at_pool3x3_3), axis=3)
+
+    net = self._conv(net, kernel_size=1, filters=256, strides=1, scope='concat', batch_norm=True)
+
+    return net
+
+  
 ####
 def decoder(name, i):
     pad = 'valid' # to prevent boundary artifacts

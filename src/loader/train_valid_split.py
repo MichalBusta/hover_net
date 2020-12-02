@@ -34,23 +34,24 @@ if __name__ == '__main__':
       img = data[...,:3] # RGB images
       ann = data[...,3:] # instance ID map
       
-      sum_cls0 = ann[:, :, 0].sum()
-      sum_cls1 = ann[:, :, 1].sum()
+      sum1 = (ann[:, :, 1] == 1).sum()
+      sum2 = (ann[:, :, 1] == 2).sum()
+      sum3 = (ann[:, :, 1] == 3).sum()
+      sum4 = (ann[:, :, 1] == 4).sum()
+      sum_all = sum1 + sum2 + sum3 + sum4
       
-      ratios.append(sum_cls1 / sum_cls0)
+      ratios.append([sum1 / sum_all, sum2 / sum_all, sum3 / sum_all, sum4 / sum_all])
       files.append(arr_name)
-      
-      print(f'{sum_cls0}/{sum_cls1} - ratio: {sum_cls1 / sum_cls0}')
       cnt += 1
       
-      #if cnt > 100:
-      #  break
+      if cnt > 100:
+        break
     except:
       import traceback
       print(f' !!!! Failed to read input: {arr_name}')
       traceback.print_exc(file=sys.stdout)
       
-  hist_info = plt.hist(ratios, bins=10, density=True)  
+  #hist_info = plt.hist(ratios, bins=10, density=True)  
   
   ratios_valid = []
   for arr_name in glob.glob(f'{valid_path}/*.npy'):
@@ -63,38 +64,40 @@ if __name__ == '__main__':
       img = data[...,:3] # RGB images
       ann = data[...,3:] # instance ID map
       
-      sum_cls0 = ann[:, :, 0].sum()
-      sum_cls1 = ann[:, :, 1].sum()
       
-      ratios_valid.append(sum_cls1 / sum_cls0)
-      ratios.append(sum_cls1 / sum_cls0)
+      sum1 = (ann[:, :, 1] == 1).sum()
+      sum2 = (ann[:, :, 1] == 2).sum()
+      sum3 = (ann[:, :, 1] == 3).sum()
+      sum4 = (ann[:, :, 1] == 4).sum()
+      sum_all = sum1 + sum2 + sum3 + sum4
+      
+      ratio = [sum1 / sum_all, sum2 / sum_all, sum3 / sum_all, sum4 / sum_all]
+      ratios.append(ratio)
+      ratios_valid.append(ratio)
       files.append(arr_name)
-      
-      print(f'{sum_cls0}/{sum_cls1} - ratio: {sum_cls1 / sum_cls0}')
       cnt += 1
+      
+      print(ratio)
       
     except:
       import traceback
       print(f' !!!! Failed to read input: {arr_name}')
       traceback.print_exc(file=sys.stdout)
   
+  bins = [0.01, 0.1, 0.5]
+  bin_vals = np.digitize(ratios, bins=bins)
+  fake_cls = bin_vals[:, 0] * 4**3 + bin_vals[:, 1] * 4**2 + bin_vals[:, 2] * 4 + bin_vals[:, 1]
   
-  hist_info2 = plt.hist(ratios_valid, bins=hist_info[1], density=True, rwidth=0.5)  
-  fake_cls = []
-  file_ids = []
-  for fid, f in enumerate(files):
-    y = []
-    y.append(ratios[fid] < hist_info2[1][0])
-    for bid in range(0, len(hist_info2[1]) - 1):
-      y.append(ratios[fid] >= hist_info2[1][bid] and ratios[fid] < hist_info2[1][bid + 1])
-    y.append(ratios[fid] >= hist_info2[1][-1])
-    y = np.asarray(y).astype(np.int)
-    fake_cls.append(y)
-    file_ids.append(fid)
+  bin_valsv = np.digitize(ratios_valid, bins=bins)
+  fake_clsv = bin_valsv[:, 0] * 4**3 + bin_valsv[:, 1] * 4**2 + bin_valsv[:, 2] * 4 + bin_valsv[:, 1]  
   
+  
+  plt.hist(fake_cls, bins=40, density=True) 
+  plt.hist(fake_clsv, bins=40, density=True)   
+  
+  file_ids = np.arange(len(files))
   folds = 5
   fake_cls = np.asarray(fake_cls)
-  fake_cls = fake_cls.argmax(1)
   skf = StratifiedKFold(n_splits=folds, random_state=2)
   skf.get_n_splits(file_ids, fake_cls)
   
@@ -118,9 +121,11 @@ if __name__ == '__main__':
     dst = dst.replace('/valid/', '/valid_strat/')
     shutil.copy(files[idx], dst, follow_symlinks=True)
     new_valid_ratios.append(ratios[idx])
-    
   
-  hist_info3 = plt.hist(new_valid_ratios, bins=hist_info[1], density=True, rwidth=0.25)  
+  bin_valsv2 = np.digitize(new_valid_ratios, bins=bins)
+  fake_clsv2 = bin_valsv2[:, 0] * 4**3 + bin_valsv2[:, 1] * 4**2 + bin_valsv2[:, 2] * 4 + bin_valsv2[:, 1]    
+  
+  hist_info3 = plt.hist(fake_clsv2, bins=40, density=True, rwidth=0.25)  
   plt.show()  
 
   

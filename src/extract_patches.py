@@ -56,6 +56,7 @@ if __name__ == '__main__':
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
         
         if cfg.type_classification:
+          
             # assumes that ann is HxWx2 (nuclei class labels are available at index 1 of C) 
             ann = sio.loadmat(ann_dir + basename + '.mat')
             ann_inst = ann['inst_map']
