@@ -44,8 +44,8 @@ if __name__ == '__main__':
       files.append(arr_name)
       cnt += 1
       
-      if cnt > 100:
-        break
+      #if cnt > 100:
+      #  break
     except:
       import traceback
       print(f' !!!! Failed to read input: {arr_name}')
